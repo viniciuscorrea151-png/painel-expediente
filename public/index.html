@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Operação: Sobreviva ao Expediente</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<div id="login">
+
+    <div class="login-box">
+
+        <div class="logo">
+            💀
+        </div>
+
+        <h1>
+            OPERAÇÃO:
+            <br>
+            SOBREVIVA AO EXPEDIENTE
+        </h1>
+
+        <p>
+            Digite seu nome de guerra.
+        </p>
+
+        <input
+            id="username"
+            maxlength="20"
+            placeholder="Ex: Vini"
+            autocomplete="off"
+        >
+
+        <button id="enter">
+            ENTRAR NA OPERAÇÃO
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<div id="app" class="hidden">
+
+
+<header>
+
+    <div>
+
+        <span class="online-dot"></span>
+
+        <span>
+            SISTEMA ONLINE
+        </span>
+
+    </div>
+
+
+    <strong>
+        OPERAÇÃO: SOBREVIVA
+    </strong>
+
+
+    <span id="clock">
+        --:--:--
+    </span>
+
+</header>
+
+
+
+<main>
+
+
+<section class="timer">
+
+    <span class="label">
+        TEMPO RESTANTE
+    </span>
+
+    <div id="countdown">
+        00:00:00
+    </div>
+
+    <p id="message">
+        Calculando...
+    </p>
+
+
+    <div class="progress">
+
+        <div id="progressBar"></div>
+
+    </div>
+
+
+    <div class="hours">
+
+        <span>
+            Entrada:
+            <b id="start">
+                08:00
+            </b>
+        </span>
+
+        <span>
+            Saída:
+            <b id="end">
+                18:00
+            </b>
+        </span>
+
+    </div>
+
+</section>
+
+
+
+<section class="panic">
+
+    <p>
+        NÍVEL DE ESTRESSE:
+        <strong>CRÍTICO</strong>
+    </p>
+
+
+    <button id="panicButton">
+
+        🚨
+
+        <span>
+            BOTÃO DO DESESPERO
+        </span>
+
+    </button>
+
+
+    <small>
+        Use somente em situações de sofrimento extremo.
+    </small>
+
+</section>
+
+
+
+<div class="grid">
+
+
+<section class="card">
+
+    <div class="card-title">
+
+        <h2>
+            💬 CHAT
+        </h2>
+
+        <span id="online">
+            0 online
+        </span>
+
+    </div>
+
+
+    <div id="messages"></div>
+
+
+    <form id="chatForm">
+
+        <input
+            id="messageInput"
+            placeholder="Digite sua mensagem..."
+            maxlength="300"
+            autocomplete="off"
+        >
+
+        <button>
+            ENVIAR
+        </button>
+
+    </form>
+
+</section>
+
+
+
+<section class="card users">
+
+    <div class="card-title">
+
+        <h2>
+            👥 SOBREVIVENTES
+        </h2>
+
+    </div>
+
+
+    <div id="usersList"></div>
+
+</section>
+
+
+</div>
+
+</main>
+
+
+</div>
+
+
+
+<div
+    id="panicAlert"
+    class="panic-alert hidden"
+>
+
+    <div>
+
+        <div class="big-alert">
+            🚨
+        </div>
+
+        <h1>
+            SOCORRO!
+        </h1>
+
+        <p id="panicText">
+            Alguém não aguenta mais.
+        </p>
+
+        <button id="closePanic">
+            ENTENDIDO
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script src="app.js"></script>
+
+
+</body>
+
+</html>
