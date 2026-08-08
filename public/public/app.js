@@ -2,11 +2,14 @@ const socket = io();
 
 
 // ==========================================
-// CONFIGURAÇÃO DO EXPEDIENTE
+// CONFIGURAÇÕES
 // ==========================================
 
-const HORARIO_ENTRADA = "08:00";
-const HORARIO_SAIDA = "18:00";
+const HORARIO_ENTRADA = 9;
+
+const HORARIO_SAIDA_SEMANA = 18;
+
+const HORARIO_SAIDA_SABADO = 15;
 
 
 // ==========================================
@@ -69,11 +72,10 @@ const closePanic =
 
 
 // ==========================================
-// HORÁRIOS
+// CONFIGURAÇÃO INICIAL
 // ==========================================
 
-start.textContent = HORARIO_ENTRADA;
-end.textContent = HORARIO_SAIDA;
+start.textContent = "09:00";
 
 
 // ==========================================
@@ -155,19 +157,69 @@ function atualizarRelogio() {
 
 
 // ==========================================
-// TEMPORIZADOR
+// CONFIGURAÇÃO DO DIA
 // ==========================================
 
-function criarHorarioHoje(horario) {
+function obterConfiguracaoDoDia() {
 
-    const [hora, minuto] =
-        horario.split(":").map(Number);
+    const agora = new Date();
 
-    const data = new Date();
+    const dia =
+        agora.getDay();
+
+    /*
+        0 = domingo
+        1 = segunda
+        2 = terça
+        3 = quarta
+        4 = quinta
+        5 = sexta
+        6 = sábado
+    */
+
+    if (dia === 0) {
+
+        return {
+            trabalhando: false,
+            domingo: true
+        };
+
+    }
+
+
+    if (dia === 6) {
+
+        return {
+            trabalhando: true,
+            entrada: 9,
+            saida: 15,
+            nome: "SÁBADO"
+        };
+
+    }
+
+
+    return {
+        trabalhando: true,
+        entrada: 9,
+        saida: 18,
+        nome: "DIA ÚTIL"
+    };
+}
+
+
+// ==========================================
+// CRIAR HORÁRIO
+// ==========================================
+
+function criarHorarioHoje(hora) {
+
+    const data =
+        new Date();
 
     data.setHours(
         hora,
-        minuto,
+        0,
         0,
         0
     );
@@ -176,14 +228,22 @@ function criarHorarioHoje(horario) {
 }
 
 
+// ==========================================
+// FORMATAR TEMPO
+// ==========================================
+
 function formatarTempo(segundos) {
 
-    if (segundos < 0) {
-        segundos = 0;
-    }
+    segundos =
+        Math.max(
+            0,
+            Math.floor(segundos)
+        );
 
     const horas =
-        Math.floor(segundos / 3600);
+        Math.floor(
+            segundos / 3600
+        );
 
     const minutos =
         Math.floor(
@@ -200,24 +260,104 @@ function formatarTempo(segundos) {
     ]
         .map(
             numero =>
-                String(numero).padStart(2, "0")
+                String(numero)
+                    .padStart(2, "0")
         )
         .join(":");
 }
 
 
+// ==========================================
+// PRÓXIMO DIA ÚTIL
+// ==========================================
+
+function encontrarProximoExpediente() {
+
+    const agora =
+        new Date();
+
+    let dias =
+        1;
+
+    while (dias <= 7) {
+
+        const proximo =
+            new Date(agora);
+
+        proximo.setDate(
+            agora.getDate() + dias
+        );
+
+        const dia =
+            proximo.getDay();
+
+        if (dia >= 1 && dia <= 6) {
+
+            return proximo;
+
+        }
+
+        dias++;
+
+    }
+
+    return agora;
+}
+
+
+// ==========================================
+// TEMPORIZADOR
+// ==========================================
+
 function atualizarTemporizador() {
 
-    const agora = new Date();
+    const agora =
+        new Date();
+
+    const config =
+        obterConfiguracaoDoDia();
+
+
+    // ==============================
+    // DOMINGO
+    // ==============================
+
+    if (config.domingo) {
+
+        countdown.textContent =
+            "DESCANSO";
+
+        message.textContent =
+            "Domingo. O expediente não existe hoje. 😎";
+
+        progressBar.style.width =
+            "100%";
+
+        end.textContent =
+            "--:--";
+
+        return;
+    }
+
 
     const entrada =
-        criarHorarioHoje(HORARIO_ENTRADA);
+        criarHorarioHoje(
+            config.entrada
+        );
 
     const saida =
-        criarHorarioHoje(HORARIO_SAIDA);
+        criarHorarioHoje(
+            config.saida
+        );
 
 
-    // Antes do expediente
+    end.textContent =
+        `${String(config.saida).padStart(2, "0")}:00`;
+
+
+    // ==============================
+    // ANTES DO EXPEDIENTE
+    // ==============================
 
     if (agora < entrada) {
 
@@ -230,32 +370,46 @@ function atualizarTemporizador() {
             formatarTempo(restante);
 
         message.textContent =
-            "O sofrimento ainda nem começou. 😌";
+            "O expediente ainda não começou. Aproveite. ☕";
 
-        progressBar.style.width = "0%";
+        progressBar.style.width =
+            "0%";
 
         return;
     }
 
 
-    // Depois do expediente
+    // ==============================
+    // DEPOIS DO EXPEDIENTE
+    // ==============================
 
     if (agora >= saida) {
 
         countdown.textContent =
             "00:00:00";
 
-        message.textContent =
-            "VOCÊ SOBREVIVEU AO EXPEDIENTE! 🎉";
-
         progressBar.style.width =
             "100%";
+
+        if (config.nome === "SÁBADO") {
+
+            message.textContent =
+                "SÁBADO ENCERRADO. VÁ SER FELIZ. 🍺";
+
+        } else {
+
+            message.textContent =
+                "EXPEDIENTE ENCERRADO. VOCÊ SOBREVIVEU. 🫡";
+
+        }
 
         return;
     }
 
 
-    // Durante o expediente
+    // ==============================
+    // DURANTE O EXPEDIENTE
+    // ==============================
 
     const total =
         (saida - entrada) / 1000;
@@ -287,29 +441,53 @@ function atualizarTemporizador() {
         `${progresso}%`;
 
 
-    // Mensagens aleatórias
+    // ==============================
+    // MENSAGENS
+    // ==============================
 
     if (restante <= 300) {
 
         message.textContent =
-            "É AGORA! NÃO DESISTA! 🏃";
+            "É AGORA. SEGURE FIRME. 🏃💨";
 
-    } else if (restante <= 1800) {
+    }
 
-        message.textContent =
-            "Falta pouco. Aguente firme. 🔥";
-
-    } else if (progresso >= 75) {
+    else if (restante <= 1800) {
 
         message.textContent =
-            "Você já sobreviveu à maior parte. 💀";
+            "FALTA POUQUÍSSIMO. NÃO OLHE PARA TRÁS. 🔥";
 
-    } else if (progresso >= 50) {
+    }
+
+    else if (progresso >= 90) {
 
         message.textContent =
-            "Metade da desgraça ficou para trás.";
+            "VOCÊ ESTÁ NA RETA FINAL. 🫡";
 
-    } else {
+    }
+
+    else if (progresso >= 75) {
+
+        message.textContent =
+            "75% DA DESGRAÇA JÁ FOI. 💀";
+
+    }
+
+    else if (progresso >= 50) {
+
+        message.textContent =
+            "METADE DO SOFRIMENTO JÁ PASSOU.";
+
+    }
+
+    else if (progresso >= 25) {
+
+        message.textContent =
+            "O DIA ESTÁ LONGO, MAS VOCÊ É MAIS.";
+
+    }
+
+    else {
 
         message.textContent =
             "Força, guerreiro. O relógio está andando.";
@@ -353,7 +531,8 @@ function adicionarMensagem(
     const div =
         document.createElement("div");
 
-    div.className = "message";
+    div.className =
+        "message";
 
 
     const nome =
@@ -386,15 +565,12 @@ function adicionarMensagem(
 
     messages.appendChild(div);
 
-
     messages.scrollTop =
         messages.scrollHeight;
 }
 
 
-function adicionarMensagemSistema(
-    text
-) {
+function adicionarMensagemSistema(text) {
 
     const div =
         document.createElement("div");
@@ -449,7 +625,7 @@ socket.on(
         usersList.innerHTML = "";
 
         online.textContent =
-            `${users.length} online`;
+            `${users.length} sobrevivente${users.length === 1 ? "" : "s"}`;
 
 
         users.forEach(
@@ -480,7 +656,6 @@ socket.on(
 
                 div.appendChild(name);
 
-
                 usersList.appendChild(div);
 
             }
@@ -494,11 +669,29 @@ socket.on(
 // BOTÃO DO DESESPERO
 // ==========================================
 
+let ultimoPanic = 0;
+
 panicButton.addEventListener(
     "click",
     () => {
 
-        socket.emit("panic");
+        const agora =
+            Date.now();
+
+        if (
+            agora - ultimoPanic <
+            10000
+        ) {
+
+            return;
+        }
+
+        ultimoPanic =
+            agora;
+
+        socket.emit(
+            "panic"
+        );
 
     }
 );
@@ -514,6 +707,7 @@ socket.on(
         panicAlert.classList.remove(
             "hidden"
         );
+
 
         setTimeout(
             () => {
@@ -560,3 +754,4 @@ setInterval(
 atualizarRelogio();
 
 atualizarTemporizador();
+
